@@ -13,6 +13,11 @@
 #import "JDStatusBarView.h"
 
 /**
+ * Posted when the visibility of status bar notification did change
+ */
+NSString * const JDStatusBarNotificationVisibilityDidChangeNotification;
+
+/**
  *  A block that is used to define the appearance of a notification.
  *  A JDStatusBarStyle instance defines the notification appeareance.
  *
