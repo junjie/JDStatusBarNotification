@@ -12,6 +12,8 @@
 #import "JDStatusBarLayoutMarginHelper.h"
 #import "JDStatusBarNotification.h"
 
+NSString * const JDStatusBarNotificationVisibilityDidChangeNotification = @"JDStatusBarNotificationVisibilityDidChangeNotification";
+
 @interface JDStatusBarStyle (Hidden)
 + (NSArray*)allDefaultStyleIdentifier;
 + (JDStatusBarStyle*)defaultStyleWithName:(NSString*)styleName;
@@ -194,7 +196,23 @@
 {
   // first, check if status bar is visible at all
   if ([UIApplication sharedApplication].statusBarHidden) return nil;
-
+	
+  BOOL wasVisible = _topBar != nil;
+	
+  // Create a top bar if not already visible
+  if (!wasVisible)
+  {
+    _topBar = [[JDStatusBarView alloc] init];
+    [self.overlayWindow.rootViewController.view addSubview:_topBar];
+    
+    JDStatusBarStyle *style = self.activeStyle ?: self.defaultStyle;
+    if (style.animationType != JDStatusBarAnimationTypeFade) {
+      _topBar.transform = CGAffineTransformMakeTranslation(0, -_topBar.frame.size.height);
+    } else {
+      _topBar.alpha = 0.0;
+    }
+  }
+  
   // prepare for new style
   if (style != self.activeStyle) {
     self.activeStyle = style;
@@ -245,7 +263,12 @@
       self.topBar.transform = CGAffineTransformIdentity;
     }];
   }
-
+  
+  if (!wasVisible)
+  {
+    [self jd_notifyChangeInVisibility];
+  }
+  
   return self.topBar;
 }
 
@@ -268,6 +291,12 @@
 {
   [self.dismissTimer invalidate];
   self.dismissTimer = nil;
+  
+  // No top bar, nothing to dismiss
+  if (!_topBar)
+  {
+    return;
+  }
 
   // check animation type
   BOOL animationsEnabled = (self.activeStyle.animationType != JDStatusBarAnimationTypeNone);
@@ -282,12 +311,13 @@
   };
 
   void(^complete)(BOOL) = ^(BOOL finished) {
-    [self.overlayWindow removeFromSuperview];
-    [self.overlayWindow setHidden:YES];
+    [_overlayWindow removeFromSuperview];
+    [_overlayWindow setHidden:YES];
     _overlayWindow.rootViewController = nil;
     _overlayWindow = nil;
     _progressView = nil;
     _topBar = nil;
+    [self jd_notifyChangeInVisibility];
   };
 
   if (animated) {
@@ -425,6 +455,13 @@
   return (_topBar != nil);
 }
 
+- (void)jd_notifyChangeInVisibility
+{
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[[NSNotificationCenter defaultCenter] postNotificationName:JDStatusBarNotificationVisibilityDidChangeNotification object:nil];
+	});
+}
+
 #pragma mark Lazy views
 
 - (UIWindow *)overlayWindow;
@@ -444,22 +481,6 @@
     [self updateTopBarFrameWithStatusBarFrame:[[UIApplication sharedApplication] statusBarFrame]];
   }
   return _overlayWindow;
-}
-
-- (JDStatusBarView*)topBar;
-{
-  if(_topBar == nil) {
-    _topBar = [[JDStatusBarView alloc] init];
-    [self.overlayWindow.rootViewController.view addSubview:_topBar];
-
-    JDStatusBarStyle *style = self.activeStyle ?: self.defaultStyle;
-    if (style.animationType != JDStatusBarAnimationTypeFade) {
-      self.topBar.transform = CGAffineTransformMakeTranslation(0, -self.topBar.frame.size.height);
-    } else {
-      self.topBar.alpha = 0.0;
-    }
-  }
-  return _topBar;
 }
 
 - (UIView *)progressView;
