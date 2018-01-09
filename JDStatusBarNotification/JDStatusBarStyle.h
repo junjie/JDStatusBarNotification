@@ -88,5 +88,8 @@ typedef NS_ENUM(NSInteger, JDStatusBarProgressBarPosition) {
 /// The corner radius of the progress bar. Default is 0.0
 @property (nonatomic, assign) CGFloat progressBarCornerRadius;
 
+/// If YES, prevents iOS 11 Smart Invert from inverting the status bar. Default is NO.
+@property (nonatomic, assign) BOOL ignoresInvertColor;
+
 @end
 
