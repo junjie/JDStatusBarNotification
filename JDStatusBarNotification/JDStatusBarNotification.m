@@ -233,6 +233,9 @@ NSString * const JDStatusBarNotificationVisibilityDidChangeNotification = @"JDSt
     // update style
     self.topBar.backgroundColor = style.barColor;
     self.topBar.textVerticalPositionAdjustment = style.textVerticalPositionAdjustment;
+	if (@available(iOS 11.0, *)) {
+		self.topBar.accessibilityIgnoresInvertColors = style.ignoresInvertColor;
+	}
     UILabel *textLabel = self.topBar.textLabel;
     textLabel.textColor = style.textColor;
     textLabel.font = style.font;

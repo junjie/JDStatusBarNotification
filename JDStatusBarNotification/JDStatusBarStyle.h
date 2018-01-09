@@ -66,5 +66,8 @@ typedef NS_ENUM(NSInteger, JDStatusBarProgressBarPosition) {
 /// The position of the progress bar. Default is JDStatusBarProgressBarPositionBottom
 @property (nonatomic, assign) JDStatusBarProgressBarPosition progressBarPosition;
 
+/// If YES, prevents iOS 11 Smart Invert from inverting the status bar. Default is NO.
+@property (nonatomic, assign) BOOL ignoresInvertColor;
+
 @end
 
