@@ -42,6 +42,15 @@
   return _activityIndicatorView;
 }
 
+- (UIImageView *)backgroundView
+{
+  if (_backgroundView == nil) {
+    _backgroundView = [UIImageView new];
+    [self insertSubview:_backgroundView atIndex:0];
+  }
+  return _backgroundView;
+}
+
 #pragma mark setter
 
 - (void)setTextVerticalPositionAdjustment:(CGFloat)textVerticalPositionAdjustment;
@@ -63,6 +72,16 @@
                                     self.bounds.size.width,
                                     self.bounds.size.height - topLayoutMargin - 1);
 
+  // background view, use ivar to prevent lazy creation
+  if (_backgroundView)
+  {
+    [self sendSubviewToBack:_backgroundView];
+    _backgroundView.frame = CGRectMake(0,
+                                       0,
+                                       CGRectGetWidth(self.bounds),
+                                       CGRectGetHeight(self.bounds));
+  }
+  
   // activity indicator
   if (_activityIndicatorView ) {
     CGSize textSize = [self currentTextSize];
